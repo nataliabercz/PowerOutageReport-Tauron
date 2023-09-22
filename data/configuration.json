@@ -1,0 +1,12 @@
+{
+  "sender_email": "",
+  "sender_email_password": "",
+  "addresses": [
+    {
+      "street_name": "",
+      "house_number": "",
+      "city": "",
+      "receivers_emails": []
+    }
+  ]
+}
