@@ -3,7 +3,7 @@ import os
 URL = 'https://www.tauron-dystrybucja.pl/waapi/{}'
 
 JSON_CONFIGURATION_FILE = 'configuration.json'
-APP_PATH = '{}/data/{}'.format(os.path.dirname(os.path.realpath(__file__)), JSON_CONFIGURATION_FILE)
+JSON_CONFIGURATION_FILE_PATH = '{}/data/{}'.format(os.path.dirname(os.path.realpath(__file__)), JSON_CONFIGURATION_FILE)
 IN_FILE = 'in `{}` file.'.format(JSON_CONFIGURATION_FILE)
 FILE_DOESNT_EXIST = "The `{}` file doesn't exist".format(JSON_CONFIGURATION_FILE)
 WRONG_FILE = 'The `{}` file is not correct.'.format(JSON_CONFIGURATION_FILE)

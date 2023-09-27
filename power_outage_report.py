@@ -8,7 +8,7 @@ from address import Address
 from email_sender import EmailSender
 from request_sender import RequestSender
 from configuration_loader import ConfigurationLoader
-from global_variables import APP_PATH, CONNECTION_ERROR, CONNECTION_ERROR_RETRYING
+from global_variables import JSON_CONFIGURATION_FILE_PATH, CONNECTION_ERROR, CONNECTION_ERROR_RETRYING
 
 
 class PowerOutageReport:
@@ -23,7 +23,7 @@ class PowerOutageReport:
         self.configuration_loader = ConfigurationLoader()
 
     def send_outage_report(self) -> None:
-        configuration = self.configuration_loader.read_from_file(APP_PATH)
+        configuration = self.configuration_loader.read_from_file(JSON_CONFIGURATION_FILE_PATH)
         self.email_sender.set_sender_info(configuration)
         for address_data in configuration.get('addresses'):
             self.address.set_address_data(address_data)

@@ -4,7 +4,7 @@ import datetime
 from mock import call, patch, MagicMock
 from address import Address
 from power_outage_report import PowerOutageReport
-from global_variables import APP_PATH, CONNECTION_ERROR, CONNECTION_ERROR_RETRYING
+from global_variables import JSON_CONFIGURATION_FILE_PATH, CONNECTION_ERROR, CONNECTION_ERROR_RETRYING
 from test_power_outage_report_data import correct_configuration_one_address, correct_configuration_multiple_addresses, \
     outage_items
 
@@ -21,7 +21,7 @@ class TestPowerOutageReport(unittest.TestCase):
                                             mock_set_address_data: MagicMock,
                                             mock_send_outage_report: MagicMock) -> None:
         self.power_outage_report_cls.send_outage_report()
-        mock_read_from_file.assert_called_once_with(APP_PATH)
+        mock_read_from_file.assert_called_once_with(JSON_CONFIGURATION_FILE_PATH)
         mock_set_sender_info.assert_called_once_with(correct_configuration_one_address)
         mock_set_address_data.assert_called_once_with(correct_configuration_one_address['addresses'][0])
         mock_send_outage_report.assert_called_once_with()
@@ -35,7 +35,7 @@ class TestPowerOutageReport(unittest.TestCase):
                                                    mock_set_sender_info: MagicMock, mock_set_address_data: MagicMock,
                                                    mock_send_outage_report: MagicMock) -> None:
         self.power_outage_report_cls.send_outage_report()
-        mock_read_from_file.assert_called_once_with(APP_PATH)
+        mock_read_from_file.assert_called_once_with(JSON_CONFIGURATION_FILE_PATH)
         mock_set_sender_info.assert_called_once_with(correct_configuration_multiple_addresses)
         mock_set_address_data.assert_has_calls([call(correct_configuration_multiple_addresses['addresses'][0]),
                                                 call(correct_configuration_multiple_addresses['addresses'][1])
