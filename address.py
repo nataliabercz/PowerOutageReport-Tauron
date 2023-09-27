@@ -1,7 +1,7 @@
-import ast
 import time
 import logging
 from typing import Dict, Any
+
 from request_sender import RequestSender
 from global_variables import WRONG_STREET_NAME_OR_CITY
 
@@ -32,10 +32,10 @@ class Address:
 
     def _set_attribute(self, variable_name: str, url_postfix: str, payload: Dict[str, Any]) -> None:
         try:
-            setattr(self, variable_name, ast.literal_eval(self._get_response(url_postfix, payload))[0]['GAID'])
+            setattr(self, variable_name, self._get_response(url_postfix, payload))
         except IndexError:
             logging.error(WRONG_STREET_NAME_OR_CITY.format(self.street_name, self.city))
             exit(1)
 
-    def _get_response(self, url_postfix: str, payload: Dict[str, Any]) -> str:
-        return self.request_sender.send_request(url_postfix, payload)
+    def _get_response(self, url_postfix: str, payload: Dict[str, Any]) -> int:
+        return self.request_sender.send_request(url_postfix, payload)[0]['GAID']

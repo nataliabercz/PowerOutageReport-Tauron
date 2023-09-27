@@ -38,7 +38,7 @@ class TestAddress(unittest.TestCase):
                                                    {'partName': 'StreetName', 'ownerGAID': 123456, '_': 1695307034194})
         mock_time.assert_called_once_with()
 
-    @patch.object(Address, '_get_response', return_value='[{"GAID":234567,"Name":"City"}]')
+    @patch.object(Address, '_get_response', return_value=234567)
     def test_set_attribute(self, mock_get_response: MagicMock) -> None:
         self.address_cls._set_attribute('city_id', 'enum/geo/cities', {'partName': 'City', '_': 1695307034194})
         mock_get_response.assert_called_once_with('enum/geo/cities', {'partName': 'City', '_': 1695307034194})
@@ -56,8 +56,8 @@ class TestAddress(unittest.TestCase):
         self.assertEqual(self.address_cls.city_id, None)
         self.assertEqual(e.exception.code, 1)
 
-    @patch('request_sender.RequestSender.send_request', return_value=test_response_adjusted)
+    @patch('request_sender.RequestSender.send_request', return_value=[{'GAID': 123456, 'Name': 'City'}])
     def test_get_response(self, mock_send_request: MagicMock) -> None:
         response = self.address_cls._get_response('enum/geo/cities', {'partName': 'City', '_': 1695307034194})
         mock_send_request.assert_called_once_with('enum/geo/cities', {'partName': 'City', '_': 1695307034194})
-        self.assertEqual(response, test_response_adjusted)
+        self.assertEqual(response, 123456)
