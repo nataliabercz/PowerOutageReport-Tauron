@@ -33,7 +33,7 @@ class Address:
     def _set_attribute(self, variable_name: str, url_postfix: str, payload: Dict[str, Any]) -> None:
         try:
             setattr(self, variable_name, self._get_response(url_postfix, payload))
-        except IndexError:
+        except (IndexError, TypeError):
             logging.error(WRONG_STREET_NAME_OR_CITY.format(self.street_name, self.city))
             exit(1)
 
