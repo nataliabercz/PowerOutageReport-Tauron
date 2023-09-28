@@ -3,7 +3,7 @@ import responses
 from mock import MagicMock, patch
 from request_sender import RequestSender
 from global_variables import URL, WRONG_REQUEST
-from test_power_outage_report_data import test_response, test_response_replaced, test_response_adjusted
+from test_power_outage_report_data import test_response, test_response_adjusted
 
 
 class TestRequestSender(unittest.TestCase):
@@ -36,7 +36,7 @@ class TestRequestSender(unittest.TestCase):
     @patch('logging.error')
     @patch.object(RequestSender, '_convert_response', return_value=123456)
     @responses.activate
-    def test_send_request_error_code(self, mock_convert_response: MagicMock, mock_error: MagicMock) -> None:
+    def test_send_request_error_status_code(self, mock_convert_response: MagicMock, mock_error: MagicMock) -> None:
         responses.add(responses.GET, URL.format('enum/geo/cities?partName=City&_=1695307034194'),
                       json='not found', status=404)
         with self.assertRaises(SystemExit) as e:
@@ -45,14 +45,17 @@ class TestRequestSender(unittest.TestCase):
         mock_error.assert_called_once_with(WRONG_REQUEST.format(404))
         self.assertEqual(e.exception.code, 1)
 
+    @patch('logging.error')
+    @patch.object(RequestSender, '_convert_response', side_effect=SyntaxError("'{' was never closed"))
+    @responses.activate
+    def test_send_request_error_converting(self, mock_convert_response: MagicMock, mock_error: MagicMock) -> None:
+        responses.add(responses.GET, URL.format('enum/geo/cities?partName=City&_=1695307034194'),
+                      json='{"AddressPoint":null,"OutageItems":[]', status=200)
+        with self.assertRaises(SystemExit) as e:
+            self.request_sender_cls.send_request('enum/geo/cities', {'partName': 'City', '_': 1695307034194})
+        mock_convert_response.assert_called_once_with('"{\\"AddressPoint\\":null,\\"OutageItems\\":[]"')
+        mock_error.assert_called_once_with("'{' was never closed")
+        self.assertEqual(e.exception.code, 1)
+
     def test_convert_response(self) -> None:
         self.assertEqual(self.request_sender_cls._convert_response(test_response), test_response_adjusted)
-
-    @patch('logging.error')
-    @patch('ast.literal_eval', side_effect=Exception('some error'))
-    def test_convert_response_error(self, mock_literal_eval: MagicMock, mock_error: MagicMock) -> None:
-        with self.assertRaises(SystemExit) as e:
-            self.request_sender_cls._convert_response(test_response)
-        mock_literal_eval.assert_called_once_with(test_response_replaced)
-        mock_error.assert_called_once_with('some error')
-        self.assertEqual(e.exception.code, 1)
