@@ -3,7 +3,7 @@ import imaplib
 import unittest
 from mock import call, patch, MagicMock
 from email_sender import EmailSender
-from global_variables import EMAIL_TITLE, EMAIL_WAS_SENT
+from global_variables import EMAIL_TITLE, EMAIL_WAS_SENT, AUTHENTICATION_FAILURE, WRONG_PARAMETER_TYPE
 from test_power_outage_report_data import correct_configuration_one_address, correct_configuration_multiple_addresses, \
     email_template, sent_emails_folder, sent_email_message_bytes
 
@@ -67,8 +67,9 @@ class TestEmailSender(unittest.TestCase):
         self.assertEqual(email_data, email_template.format('sender@mail.com', 'receiver@mail.com', 'StreetName', 'msg',
                                                            '27/09/2023', '27/09/2023', '07:00:00', '16:00:00'))
 
+    @patch('logging.error')
     @patch.object(EmailSender, '_check_if_email_was_sent', return_value=False)
-    def test_send_email(self, mock_check_if_email_was_sent: MagicMock) -> None:
+    def test_send_email(self, mock_check_if_email_was_sent: MagicMock, mock_error: MagicMock) -> None:
         self.email_sender_cls.sender_email = correct_configuration_one_address['sender_email']
         self.email_sender_cls.sender_email_password = correct_configuration_one_address['sender_email_password']
         self.email_sender_cls.receivers_emails = correct_configuration_one_address['addresses'][0]['receivers_emails']
@@ -88,9 +89,11 @@ class TestEmailSender(unittest.TestCase):
                                                                            'StreetName', 'msg', '26/09/2023',
                                                                            '26/09/2023', '07:00:00', '16:00:00'))
         mock_server.close.assert_called_once_with()
+        mock_error.assert_not_called()
 
+    @patch('logging.error')
     @patch.object(EmailSender, '_check_if_email_was_sent', return_value=True)
-    def test_send_email_already_sent(self, mock_check_if_email_was_sent: MagicMock) -> None:
+    def test_send_email_already_sent(self, mock_check_if_email_was_sent: MagicMock, mock_error: MagicMock) -> None:
         mock_server = MagicMock()
         smtplib.SMTP_SSL = MagicMock(return_value=mock_server)
         self.email_sender_cls._send_email(email_template.format('example@mail.com',
@@ -102,9 +105,27 @@ class TestEmailSender(unittest.TestCase):
         mock_server.login.assert_not_called()
         mock_server.send_mail.assert_not_called()
         mock_server.close.assert_not_called()
+        mock_error.assert_not_called()
 
+    @patch('logging.error')
+    @patch.object(EmailSender, '_check_if_email_was_sent', side_effect=imaplib.IMAP4.error)
+    def test_send_email_error(self, mock_check_if_email_was_sent: MagicMock, mock_error: MagicMock) -> None:
+        mock_server = MagicMock()
+        smtplib.SMTP_SSL = MagicMock(return_value=mock_server)
+        self.email_sender_cls._send_email(email_template.format('example@mail.com',
+                                                                'receiver1@mail.com, receiver2@mail.com',
+                                                                'StreetName', 'msg', '26/09/2023', '26/09/2023',
+                                                                '07:00:00', '16:00:00'))
+        mock_check_if_email_was_sent.assert_called_once_with()
+        mock_server.ehlo.assert_not_called()
+        mock_server.login.assert_not_called()
+        mock_server.send_mail.assert_not_called()
+        mock_server.close.assert_not_called()
+        mock_error.assert_called_once_with(AUTHENTICATION_FAILURE)
+
+    @patch('logging.error')
     @patch.object(EmailSender, '_check_sent_emails', return_value=True)
-    def test_check_if_email_was_sent_true(self, mock_check_sent_emails: MagicMock) -> None:
+    def test_check_if_email_was_sent_true(self, mock_check_sent_emails: MagicMock, mock_error: MagicMock) -> None:
         self.email_sender_cls.sender_email = correct_configuration_one_address['sender_email']
         self.email_sender_cls.sender_email_password = correct_configuration_one_address['sender_email_password']
         mock_server = MagicMock()
@@ -120,10 +141,12 @@ class TestEmailSender(unittest.TestCase):
                                                   self.email_sender_cls.sender_email_password)
         mock_server.list.assert_called_once_with()
         mock_check_sent_emails.assert_called_once_with(mock_server, '[Gmail]/Sent Mail')
+        mock_error.assert_not_called()
         self.assertEqual(email_was_sent, True)
 
+    @patch('logging.error')
     @patch.object(EmailSender, '_check_sent_emails', return_value=False)
-    def test_check_if_email_was_sent_false(self, mock_check_sent_emails: MagicMock) -> None:
+    def test_check_if_email_was_sent_false(self, mock_check_sent_emails: MagicMock, mock_error: MagicMock) -> None:
         self.email_sender_cls.sender_email = correct_configuration_one_address['sender_email']
         self.email_sender_cls.sender_email_password = correct_configuration_one_address['sender_email_password']
         mock_server = MagicMock()
@@ -139,7 +162,31 @@ class TestEmailSender(unittest.TestCase):
                                                   self.email_sender_cls.sender_email_password)
         mock_server.list.assert_called_once_with()
         mock_check_sent_emails.assert_called_once_with(mock_server, sent_emails_folder)
+        mock_error.assert_not_called()
         self.assertEqual(email_was_sent, False)
+
+    @patch('logging.error')
+    @patch.object(EmailSender, '_check_sent_emails', side_effect=TypeError)
+    def test_check_if_email_was_sent_error(self, mock_check_sent_emails: MagicMock, mock_error: MagicMock) -> None:
+        self.email_sender_cls.sent_messages_number = 20.5
+        self.email_sender_cls.sender_email = correct_configuration_one_address['sender_email']
+        self.email_sender_cls.sender_email_password = correct_configuration_one_address['sender_email_password']
+        mock_server = MagicMock()
+        imaplib.IMAP4_SSL = MagicMock(return_value=mock_server)
+        mock_server.list.return_value = ('OK', [b'(\\HasNoChildren) "/" "INBOX"',
+                                                b'(\\HasNoChildren \\Junk) "/" "[Gmail]/"Spam',
+                                                b'(\\HasNoChildren \\Important) "/" "[Gmail]/Important"',
+                                                b'(\\Drafts \\HasNoChildren) "/" "[Gmail]/Drafts"',
+                                                b'(\\Flagged \\HasNoChildren) "/" "[Gmail]/Starred"',
+                                                b'(\\HasNoChildren \\Sent) "/" "[Gmail]/Sent Mail"'])
+        with self.assertRaises(SystemExit) as e:
+            self.email_sender_cls._check_if_email_was_sent()
+        mock_server.login.assert_called_once_with(self.email_sender_cls.sender_email,
+                                                  self.email_sender_cls.sender_email_password)
+        mock_server.list.assert_called_once_with()
+        mock_check_sent_emails.assert_called_once_with(mock_server, sent_emails_folder)
+        mock_error.assert_called_once_with(WRONG_PARAMETER_TYPE.format('sent_messages_number = 20.5', int))
+        self.assertEqual(e.exception.code, 1)
 
     def test_check_sent_emails_was_sent_true(self) -> None:
         self.email_sender_cls.email_title = EMAIL_TITLE.format('StreetName')

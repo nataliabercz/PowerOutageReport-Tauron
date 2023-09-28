@@ -6,11 +6,11 @@ import unidecode
 from typing import List, Dict, Any
 from datetime import datetime, timedelta
 
-from global_variables import EMAIL_TITLE, EMAIL_WAS_SENT
+from global_variables import EMAIL_TITLE, EMAIL_WAS_SENT, AUTHENTICATION_FAILURE, WRONG_PARAMETER_TYPE
 
 
 class EmailSender:
-    sent_messages_number = 10
+    sent_messages_number = 20
     sender_email = None
     sender_email_password = None
     receivers_emails = None
@@ -51,19 +51,27 @@ class EmailSender:
                f'DURATION: {(start_time + timezone_shift).time()} - {(end_time + timezone_shift).time()}'
 
     def _send_email(self, email_text: str) -> None:
-        if not self._check_if_email_was_sent():
-            server = smtplib.SMTP_SSL('smtp.gmail.com')
-            server.ehlo()
-            server.login(self.sender_email, self.sender_email_password)
-            server.sendmail(self.sender_email, self.receivers_emails, email_text)
-            server.close()
+        try:
+            if not self._check_if_email_was_sent():
+                server = smtplib.SMTP_SSL('smtp.gmail.com')
+                server.ehlo()
+                server.login(self.sender_email, self.sender_email_password)
+                server.sendmail(self.sender_email, self.receivers_emails, email_text)
+                server.close()
+        except imaplib.IMAP4.error:
+            logging.error(AUTHENTICATION_FAILURE)
 
     def _check_if_email_was_sent(self) -> bool:
         server = imaplib.IMAP4_SSL('imap.gmail.com')
         server.login(self.sender_email, self.sender_email_password)
         for item in server.list()[1]:
             if 'Sent' in str(item):
-                return self._check_sent_emails(server, str(item).rsplit('"')[-2])
+                try:
+                    return self._check_sent_emails(server, str(item).rsplit('"')[-2])
+                except TypeError:
+                    logging.error(WRONG_PARAMETER_TYPE.format(
+                        f'sent_messages_number = {self.sent_messages_number}', int))
+                    exit(1)
         return False
 
     def _check_sent_emails(self, server: imaplib.IMAP4_SSL, sent_folder: str) -> bool:
