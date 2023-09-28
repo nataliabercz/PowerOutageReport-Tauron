@@ -39,9 +39,6 @@ correct_configuration_multiple_addresses = {
 test_response = '{"AddressPoint":null,"OutageItems":[{"OutageId":"id_1","StartDate":"s_date","EndDate":"e_date",' \
                 '"Message":"msg","IsActive":true},{"OutageId":"id_2","StartDate":"s_date","EndDate":"e_date",' \
                 '"Message":"msg","IsActive":false}]}'
-test_response_replaced = '{"AddressPoint":"","OutageItems":[{"OutageId":"id_1","StartDate":"s_date",' \
-                         '"EndDate":"e_date","Message":"msg","IsActive":True},{"OutageId":"id_2","StartDate":"s_date",' \
-                         '"EndDate":"e_date","Message":"msg","IsActive":False}]}'
 test_response_adjusted = {'AddressPoint': '', 'OutageItems': [{'EndDate': 'e_date', 'IsActive': True, 'Message': 'msg',
                                                                'OutageId': 'id_1', 'StartDate': 's_date'},
                                                               {'EndDate': 'e_date', 'IsActive': False, 'Message': 'msg',
