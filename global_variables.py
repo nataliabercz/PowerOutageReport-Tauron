@@ -9,7 +9,10 @@ FILE_DOESNT_EXIST = "The `{}` file doesn't exist".format(JSON_CONFIGURATION_FILE
 WRONG_FILE = 'The `{}` file is not correct.'.format(JSON_CONFIGURATION_FILE)
 MISSING_OR_EMPTY_PARAMETER = 'The parameter: `{}` is missing or empty ' + IN_FILE
 WRONG_STREET_NAME_OR_CITY = 'The street name: `{}` or city `{}` is not correct ' + IN_FILE
-WRONG_PARAMETER_TYPE = 'The parameter: `{}` should have `{}` type ' + IN_FILE
+WRONG_PARAMETER_TYPE = 'The parameter: `{}` should have `{}` type '
+WRONG_PARAMETER_TYPE_IN_FILE = 'The parameter: `{}` should have `{}` type ' + IN_FILE
+
+AUTHENTICATION_FAILURE = 'Authentication Failure. Check `sender_email` and `sender_email_passwords` ' + IN_FILE
 
 WRONG_REQUEST = 'Wrong request! Status code: {}.'
 CONNECTION_ERROR = 'Connection ERROR.'
