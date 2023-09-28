@@ -5,10 +5,10 @@
 PowerOutageReport allows you to configure Tauron power outage reports for selected addresses.
 
 You can sign up for notifications on Tauron's official website, but then almost every day you will receive 
-e-mails about power failures on a lot of streets in your area - not only on the specific 
-streets that concerns you.
+emails about power failures on a lot of streets in your area - not only on the specific 
+streets that concern you.
 
-PowerOutageReport checks recently sent e-mails (their number can be configured) and therefore 
+PowerOutageReport checks recently sent emails (their number can be configured) and therefore 
 only sends one failure report.
 
 ## Instructions
@@ -20,22 +20,22 @@ Install Python and all packages from `requirements.txt` file.
 
 Fill in the configuration file: `configuration.json`. You can find it in the `data` directory.
 
-#### 1.1 Fields description
+#### 2.1 Fields description
 
-- sender_email - e-mail address, e-mails will be sent from this address
-- sender_email_password - e-mail password for e-mail address (check subchapter Getting sender_email_password)
-- addresses - list of addresses
-- street_name - name of street
-- house_number - number of house / building
-- city - name of city where the street is
-- receivers_emails - list of e-mail addresses when the power outage reports will be sent
+- sender_email - email address that will be used to send reports,
+- sender_email_password - email password for sender_email (check *2.3 Getting password for sender email*),
+- addresses - list of addresses to check,
+- street_name - name of street,
+- house_number - number of house / building,
+- city - name of city where the street is,
+- receivers_emails - list of email addresses that will receive the power outage reports.
 
-#### 1.2 Example configuration file
+#### 2.2 Example configuration file
 
 ```
 {
   "sender_email": "sender@gmail.com",
-  "sender_email_password": "password123",
+  "sender_email_password": "passwordpassword",
   "addresses": [
     {
       "street_name": "Street1",
@@ -53,16 +53,18 @@ Fill in the configuration file: `configuration.json`. You can find it in the `da
 }
 ```
 
-#### 1.3 Getting sender_email_password
+#### 2.3 Getting password for sender email
 
-*Note: The domain name for sender e-mail address should be gmail.com.*
+*Note: The domain name for sender email address should be gmail.com.*
+
+*Note: An app password is a 16-digit passcode that gives a less secure app permission to access Google Account.
+App passwords can only be used with accounts that have 2-Step Verification turned on.*
 
 1. Go to the Google account - `Security` tab: https://myaccount.google.com/security.
+
     <img src="./images/security_tab.png" width="400"/>
 
-2. Go to `How you sign in to Google` field and choose `2-Step Verification`.
-
-    *If 2-Step Verification is not turned on you need to set it first.*
+2. Go to `How you sign in to Google` field and choose `2-Step Verification` tab.
     
     <img src="./images/two_steps_verification.png" width="400"/>
 
@@ -93,13 +95,15 @@ You can add it to the `Startup Apps`, so it will be launched every time you turn
 
 2. Open the `Startup` directory.
 
-   1.1 Click `Windows Key + R`. 
+   2.1 Click `Windows Key + R`. 
 
-   1.2 In the Run window, in the Open field type `shell:startup`.
+   2.2 In the Run window `Open` field type `shell:startup`.
 
-   1.3 Click `OK`.
+   2.3 Click `OK`.
 
     <img src="./images/shell_startup.png" width="300"/>
+
+   *Result: The `Startup` directory is opened.*
 
 3. Put `power_outage_report.py - Shortcut` in the `Startup` directory.
 
@@ -107,9 +111,9 @@ You can add it to the `Startup Apps`, so it will be launched every time you turn
 
 ### 4. Additional settings
 
-1. If you send many e-mails from your gmail mailbox, you can change the number of sent emails that will be checked.
-   Currently, it is set to 20. This means if any of the last 20 emails was a power outage report, 
-   a new message will not be generated.
+1. If you send many emails from your gmail mailbox, you can change the number of sent emails that will be checked.
+   Currently, it is set to 20. This means if any of the last 20 emails was a power outage report for specific address 
+   and receivers, a new message will not be generated.
 
    1.1 Open `email_sender.py`. 
 
