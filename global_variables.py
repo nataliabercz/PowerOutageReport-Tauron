@@ -12,9 +12,10 @@ WRONG_STREET_NAME_OR_CITY = 'The street name: `{}` or city `{}` is not correct '
 WRONG_PARAMETER_TYPE = 'The parameter: `{}` should have `{}` type '
 WRONG_PARAMETER_TYPE_IN_FILE = 'The parameter: `{}` should have `{}` type ' + IN_FILE
 
-AUTHENTICATION_FAILURE = 'Authentication Failure. Check `sender_email` and `sender_email_passwords` ' + IN_FILE
+AUTHENTICATION_FAILURE = 'Authentication ERROR. Check `sender_email` and `sender_email_passwords` ' + IN_FILE
 
-WRONG_REQUEST = 'Wrong request! Status code: {}.'
+WRONG_REQUEST = 'Wrong request!'
+WRONG_REQUEST_STATUS_CODE = WRONG_REQUEST + 'Status code: {}.'
 CONNECTION_ERROR = 'Connection ERROR.'
 CONNECTION_ERROR_RETRYING = CONNECTION_ERROR + 'Retrying in {}s... {}'
 

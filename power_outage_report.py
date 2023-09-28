@@ -27,17 +27,31 @@ class PowerOutageReport:
         self.email_sender.set_sender_info(configuration)
         for address_data in configuration.get('addresses'):
             self.address.set_address_data(address_data)
+            self._try_to_execute_function(self.address.set_city_id)
+            self._try_to_execute_function(self.address.set_street_id)
             self.email_sender.set_receivers_info(address_data)
             self.email_sender.street_name = self.address.street_name
-            self._send_outage_report()
+            self._try_to_execute_function(self._send_outage_report)
 
-    def _send_outage_report(self) -> None:
+    def _try_to_execute_function(self, function: Any) -> None:
         try:
-            self.email_sender.prepare_and_send_email(self._get_outage_information())
-            self.retries = 0
+            function()
+            self.retries = 5
         except requests.ConnectionError:
             logging.error(CONNECTION_ERROR_RETRYING.format(self.sleep_time, self.retries))
-            self._retry()
+            self._retry(function)
+
+    def _retry(self, function) -> None:
+        if self.retries > 0:
+            self.retries -= 1
+            time.sleep(self.sleep_time)
+            self._try_to_execute_function(function)
+        else:
+            logging.error(CONNECTION_ERROR)
+            exit(1)
+
+    def _send_outage_report(self) -> None:
+        self.email_sender.prepare_and_send_email(self._get_outage_information())
 
     def _get_outage_information(self) -> List[Dict[str, Any]]:
         now = datetime.now()
@@ -46,15 +60,6 @@ class PowerOutageReport:
                    'toDate': (now + timedelta(days=self.days_before)).isoformat(),
                    'flatNo': '', '_': int(now.timestamp() * 1000)}
         return self.request_sender.send_request('outages/address', payload)['OutageItems']
-
-    def _retry(self) -> None:
-        if self.retries > 0:
-            time.sleep(self.sleep_time)
-            self._send_outage_report()
-            self.retries -= 1
-        else:
-            logging.error(CONNECTION_ERROR)
-            exit(1)
 
 
 if __name__ == '__main__':

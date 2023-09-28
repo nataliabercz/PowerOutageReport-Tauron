@@ -9,12 +9,8 @@ class TestAddress(unittest.TestCase):
     def setUp(self) -> None:
         self.address_cls = Address()
 
-    @patch.object(Address, '_set_street_id')
-    @patch.object(Address, '_set_city_id')
-    def test_set_address_data(self, mock_set_city_id: MagicMock, mock_set_street_id: MagicMock) -> None:
+    def test_set_address_data(self) -> None:
         self.address_cls.set_address_data(correct_configuration_one_address['addresses'][0])
-        mock_set_city_id.assert_called_once_with()
-        mock_set_street_id.assert_called_once_with()
         self.assertEqual(self.address_cls.street_name, 'StreetName')
         self.assertEqual(self.address_cls.house_number, 'HouseNumber')
         self.assertEqual(self.address_cls.city, 'City')
@@ -23,7 +19,7 @@ class TestAddress(unittest.TestCase):
     @patch.object(Address, '_set_attribute')
     def test_set_city_id(self, mock_set_attribute: MagicMock, mock_time: MagicMock) -> None:
         self.address_cls.city = 'City'
-        self.address_cls._set_city_id()
+        self.address_cls.set_city_id()
         mock_set_attribute.assert_called_once_with('city_id', 'enum/geo/cities',
                                                    {'partName': 'City', '_': 1695307034194})
         mock_time.assert_called_once_with()
@@ -33,7 +29,7 @@ class TestAddress(unittest.TestCase):
     def test_set_street_id(self, mock_set_attribute: MagicMock, mock_time: MagicMock) -> None:
         self.address_cls.street_name = 'StreetName'
         self.address_cls.city_id = 123456
-        self.address_cls._set_street_id()
+        self.address_cls.set_street_id()
         mock_set_attribute.assert_called_once_with('street_id', 'enum/geo/streets',
                                                    {'partName': 'StreetName', 'ownerGAID': 123456, '_': 1695307034194})
         mock_time.assert_called_once_with()

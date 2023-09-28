@@ -20,13 +20,11 @@ class Address:
         self.street_name = address_data.get('street_name')
         self.house_number = address_data.get('house_number')
         self.city = address_data.get('city')
-        self._set_city_id()
-        self._set_street_id()
 
-    def _set_city_id(self) -> None:
+    def set_city_id(self) -> None:
         self._set_attribute('city_id', 'enum/geo/cities', {'partName': self.city, '_': int(time.time() * 1000)})
 
-    def _set_street_id(self) -> None:
+    def set_street_id(self) -> None:
         self._set_attribute('street_id', 'enum/geo/streets', {'partName': self.street_name, 'ownerGAID': self.city_id,
                                                               '_': int(time.time() * 1000)})
 
