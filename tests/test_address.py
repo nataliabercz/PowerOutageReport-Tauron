@@ -1,8 +1,9 @@
 import unittest
 from mock import patch, MagicMock
-from address import Address
-from global_variables import WRONG_STREET_NAME_OR_CITY
+
 from test_power_outage_report_data import correct_configuration_one_address
+from global_variables import WRONG_STREET_NAME_OR_CITY
+from address import Address
 
 
 class TestAddress(unittest.TestCase):
@@ -45,24 +46,24 @@ class TestAddress(unittest.TestCase):
     def test_set_attribute_index_error(self, mock_get_response: MagicMock, mock_error: MagicMock) -> None:
         self.address_cls.street_name = 'StreetName'
         self.address_cls.city = 'WrongCity'
-        with self.assertRaises(SystemExit) as e:
+        with self.assertRaises(SystemExit) as error:
             self.address_cls._set_attribute('city_id', 'enum/geo/cities', {'partName': 'WrongCity', '_': 1695307034194})
         mock_get_response.assert_called_once_with('enum/geo/cities', {'partName': 'WrongCity', '_': 1695307034194})
         mock_error.assert_called_once_with(WRONG_STREET_NAME_OR_CITY.format('StreetName', 'WrongCity'))
         self.assertEqual(self.address_cls.city_id, None)
-        self.assertEqual(e.exception.code, 1)
+        self.assertEqual(error.exception.code, 1)
 
     @patch('logging.error')
     @patch.object(Address, '_get_response', side_effect=TypeError)
-    def test_set_attribute_index_error(self, mock_get_response: MagicMock, mock_error: MagicMock) -> None:
+    def test_set_attribute_type_error(self, mock_get_response: MagicMock, mock_error: MagicMock) -> None:
         self.address_cls.street_name = 'StreetName'
         self.address_cls.city = 'WrongCity'
-        with self.assertRaises(SystemExit) as e:
+        with self.assertRaises(SystemExit) as error:
             self.address_cls._set_attribute('city_id', 'enum/geo/cities', {'partName': 'WrongCity', '_': 1695307034194})
         mock_get_response.assert_called_once_with('enum/geo/cities', {'partName': 'WrongCity', '_': 1695307034194})
         mock_error.assert_called_once_with(WRONG_STREET_NAME_OR_CITY.format('StreetName', 'WrongCity'))
         self.assertEqual(self.address_cls.city_id, None)
-        self.assertEqual(e.exception.code, 1)
+        self.assertEqual(error.exception.code, 1)
 
     @patch('request_sender.RequestSender.send_request', return_value=[{'GAID': 123456, 'Name': 'City'}])
     def test_get_response(self, mock_send_request: MagicMock) -> None:
