@@ -2,10 +2,10 @@ import sys
 import logging
 import smtplib
 import imaplib
-import unidecode
 from datetime import datetime, timedelta
-import pytz
 from typing import List, Dict, Any
+import unidecode
+import pytz
 
 from global_variables import EMAIL_TITLE, EMAIL_WAS_SENT, AUTHENTICATION_FAILURE, WRONG_PARAMETER_TYPE
 
