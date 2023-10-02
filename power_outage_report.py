@@ -1,8 +1,9 @@
+import sys
 import time
 import logging
-import requests
-from typing import List, Dict, Any
 from datetime import datetime, timedelta
+from typing import List, Dict, Any
+import requests
 
 from address import Address
 from email_sender import EmailSender
@@ -48,7 +49,7 @@ class PowerOutageReport:
             self._try_to_execute_function(function)
         else:
             logging.error(CONNECTION_ERROR)
-            exit(1)
+            sys.exit(1)
 
     def _send_outage_report(self) -> None:
         self.email_sender.prepare_and_send_email(self._get_outage_information())

@@ -1,10 +1,11 @@
-import pytz
+import sys
 import logging
 import smtplib
 import imaplib
 import unidecode
-from typing import List, Dict, Any
 from datetime import datetime, timedelta
+import pytz
+from typing import List, Dict, Any
 
 from global_variables import EMAIL_TITLE, EMAIL_WAS_SENT, AUTHENTICATION_FAILURE, WRONG_PARAMETER_TYPE
 
@@ -71,14 +72,14 @@ class EmailSender:
                 except TypeError:
                     logging.error(WRONG_PARAMETER_TYPE.format(
                         f'sent_messages_number = {self.sent_messages_number}', int))
-                    exit(1)
+                    sys.exit(1)
         return False
 
     def _check_sent_emails(self, server: imaplib.IMAP4_SSL, sent_folder: str) -> bool:
-        status, messages_number = server.select(f'"{sent_folder}"')
+        _, messages_number = server.select(f'"{sent_folder}"')
         for i in range(int(messages_number[0]), int(messages_number[0]) - self.sent_messages_number, -1):
             if i > 0:
-                status, message = server.fetch(str(i), '(RFC822)')
+                _, message = server.fetch(str(i), '(RFC822)')
                 if self.email_title in str(message[0]) and self._join_receivers_emails() in str(message[0]):
                     return True
         return False

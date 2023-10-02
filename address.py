@@ -1,3 +1,4 @@
+import sys
 import time
 import logging
 from typing import Dict, Any
@@ -33,7 +34,7 @@ class Address:
             setattr(self, variable_name, self._get_response(url_postfix, payload))
         except (IndexError, TypeError):
             logging.error(WRONG_STREET_NAME_OR_CITY.format(self.street_name, self.city))
-            exit(1)
+            sys.exit(1)
 
     def _get_response(self, url_postfix: str, payload: Dict[str, Any]) -> int:
         return self.request_sender.send_request(url_postfix, payload)[0]['GAID']

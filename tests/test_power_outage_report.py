@@ -1,11 +1,12 @@
 import unittest
 import requests
 from mock import call, patch, MagicMock
-from address import Address
-from power_outage_report import PowerOutageReport
-from global_variables import JSON_CONFIGURATION_FILE_PATH, CONNECTION_ERROR, CONNECTION_ERROR_RETRYING
+
 from test_power_outage_report_data import correct_configuration_one_address, correct_configuration_multiple_addresses, \
     outage_items
+from global_variables import JSON_CONFIGURATION_FILE_PATH, CONNECTION_ERROR, CONNECTION_ERROR_RETRYING
+from power_outage_report import PowerOutageReport
+from address import Address
 
 
 class TestPowerOutageReport(unittest.TestCase):
@@ -108,12 +109,12 @@ class TestPowerOutageReport(unittest.TestCase):
     def test_retry_error(self, mock_function: MagicMock, mock_time_sleep: MagicMock,
                          mock_try_to_execute_function: MagicMock, mock_error: MagicMock) -> None:
         self.power_outage_report_cls.retries = 0
-        with self.assertRaises(SystemExit) as e:
+        with self.assertRaises(SystemExit) as error:
             self.power_outage_report_cls._retry(mock_function)
         mock_time_sleep.assert_not_called()
         mock_try_to_execute_function.assert_not_called()
         mock_error.assert_called_once_with(CONNECTION_ERROR)
-        self.assertEqual(e.exception.code, 1)
+        self.assertEqual(error.exception.code, 1)
 
     @patch('email_sender.EmailSender.prepare_and_send_email')
     @patch.object(PowerOutageReport, '_get_outage_information', return_value=outage_items)

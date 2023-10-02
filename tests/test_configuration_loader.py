@@ -2,9 +2,10 @@ import json
 import unittest
 from io import StringIO
 from mock import patch, MagicMock, call
-from configuration_loader import ConfigurationLoader
-from global_variables import FILE_DOESNT_EXIST, WRONG_FILE, MISSING_OR_EMPTY_PARAMETER, WRONG_PARAMETER_TYPE_IN_FILE
+
 from test_power_outage_report_data import correct_configuration_one_address, correct_configuration_multiple_addresses
+from global_variables import FILE_DOESNT_EXIST, WRONG_FILE, MISSING_OR_EMPTY_PARAMETER, WRONG_PARAMETER_TYPE_IN_FILE
+from configuration_loader import ConfigurationLoader
 
 
 class TestConfigurationLoader(unittest.TestCase):
@@ -32,13 +33,13 @@ class TestConfigurationLoader(unittest.TestCase):
     @patch('builtins.open', side_effect=FileNotFoundError)
     def test_read_from_file_error(self, mock_open: MagicMock, mock_load_json: MagicMock,
                                   mock_validate: MagicMock, mock_error: MagicMock) -> None:
-        with self.assertRaises(SystemExit) as e:
+        with self.assertRaises(SystemExit) as error:
             self.configuration_loader_cls.read_from_file('configuration.json')
         mock_open.assert_called_once_with('configuration.json', encoding='utf-8')
         mock_load_json.assert_not_called()
         mock_validate.assert_not_called()
         mock_error.assert_called_once_with(FILE_DOESNT_EXIST)
-        self.assertEqual(e.exception.code, 1)
+        self.assertEqual(error.exception.code, 1)
 
     @patch('json.load', return_value=correct_configuration_one_address)
     def test_load_json(self, mock_json_load: MagicMock) -> None:
@@ -50,12 +51,12 @@ class TestConfigurationLoader(unittest.TestCase):
     @patch('json.load', side_effect=json.JSONDecodeError('json decode error', 'doc', 0))
     def test_load_json_error(self, mock_json_load: MagicMock, mock_error: MagicMock) -> None:
         file = StringIO(json.dumps('not_valid_json'))
-        with self.assertRaises(SystemExit) as e:
+        with self.assertRaises(SystemExit) as error:
             configuration = self.configuration_loader_cls._load_json(file)
             self.assertEqual(configuration, None)
         mock_json_load.assert_called_once_with(file)
         mock_error.assert_called_once_with(WRONG_FILE)
-        self.assertEqual(e.exception.code, 1)
+        self.assertEqual(error.exception.code, 1)
 
     @patch('logging.error')
     @patch.object(ConfigurationLoader, '_check_type')
@@ -106,12 +107,12 @@ class TestConfigurationLoader(unittest.TestCase):
     @patch.object(ConfigurationLoader, '_check_value_and_type')
     def test_validate_error_not_dictionary(self, mock_check_value_and_type: MagicMock, mock_check_type: MagicMock,
                                            mock_error: MagicMock) -> None:
-        with self.assertRaises(SystemExit) as e:
+        with self.assertRaises(SystemExit) as error:
             self.configuration_loader_cls._validate([])
         mock_check_value_and_type.assert_not_called()
         mock_check_type.assert_not_called()
         mock_error.assert_called_once_with(WRONG_FILE)
-        self.assertEqual(e.exception.code, 1)
+        self.assertEqual(error.exception.code, 1)
 
     @patch.object(ConfigurationLoader, '_check_type')
     @patch.object(ConfigurationLoader, '_check_value')
@@ -127,10 +128,10 @@ class TestConfigurationLoader(unittest.TestCase):
 
     @patch('logging.error')
     def test_check_value_error(self, mock_error: MagicMock) -> None:
-        with self.assertRaises(SystemExit) as e:
+        with self.assertRaises(SystemExit) as error:
             self.configuration_loader_cls._check_value('', 'sender_email')
         mock_error.assert_called_once_with(MISSING_OR_EMPTY_PARAMETER.format('sender_email'))
-        self.assertEqual(e.exception.code, 1)
+        self.assertEqual(error.exception.code, 1)
 
     @patch('logging.error')
     def test_check_type(self, mock_error: MagicMock) -> None:
@@ -139,7 +140,7 @@ class TestConfigurationLoader(unittest.TestCase):
 
     @patch('logging.error')
     def test_check_type_error(self, mock_error: MagicMock) -> None:
-        with self.assertRaises(SystemExit) as e:
-            self.configuration_loader_cls._check_type(123, f"address['receivers_emails'][0]", str)
-        mock_error.assert_called_once_with(WRONG_PARAMETER_TYPE_IN_FILE.format(f"address['receivers_emails'][0]", str))
-        self.assertEqual(e.exception.code, 1)
+        with self.assertRaises(SystemExit) as error:
+            self.configuration_loader_cls._check_type(123, "address['receivers_emails'][0]", str)
+        mock_error.assert_called_once_with(WRONG_PARAMETER_TYPE_IN_FILE.format("address['receivers_emails'][0]", str))
+        self.assertEqual(error.exception.code, 1)
