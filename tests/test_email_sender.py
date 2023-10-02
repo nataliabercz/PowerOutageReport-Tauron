@@ -1,6 +1,8 @@
+import pytz
 import smtplib
 import imaplib
 import unittest
+from datetime import datetime, timedelta
 from mock import call, patch, MagicMock
 from email_sender import EmailSender
 from global_variables import EMAIL_TITLE, EMAIL_WAS_SENT, AUTHENTICATION_FAILURE, WRONG_PARAMETER_TYPE
@@ -58,6 +60,10 @@ class TestEmailSender(unittest.TestCase):
         self.assertEqual(self.email_sender_cls.email_title, EMAIL_TITLE.format('Street A'))
 
     def test_prepare_email_data(self) -> None:
+        utcnow = pytz.timezone('utc').localize(datetime.utcnow())
+        timezone_shift = timedelta(hours=utcnow.astimezone().hour - utcnow.hour)
+        start = datetime.strptime('05:00:00', '%H:%M:%S')
+        end = datetime.strptime('14:00:00', '%H:%M:%S')
         self.email_sender_cls.street_name = 'StreetName'
         self.email_sender_cls.email_title = EMAIL_TITLE.format(self.email_sender_cls.street_name)
         self.email_sender_cls.sender_email = correct_configuration_one_address['sender_email']
@@ -65,7 +71,8 @@ class TestEmailSender(unittest.TestCase):
         outage_items = {'StartDate': '2023-09-27T05:00:00Z', 'EndDate': '2023-09-27T14:00:00Z', 'Message': 'msg'}
         email_data = self.email_sender_cls._prepare_email_data(outage_items)
         self.assertEqual(email_data, email_template.format('sender@mail.com', 'receiver@mail.com', 'StreetName', 'msg',
-                                                           '27/09/2023', '27/09/2023', '07:00:00', '16:00:00'))
+                                                           '27/09/2023', '27/09/2023', (start + timezone_shift).time(),
+                                                           (end + timezone_shift).time()))
 
     @patch('logging.error')
     @patch.object(EmailSender, '_check_if_email_was_sent', return_value=False)

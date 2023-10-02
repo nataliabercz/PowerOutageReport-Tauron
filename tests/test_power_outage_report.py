@@ -1,6 +1,5 @@
 import unittest
 import requests
-import datetime
 from mock import call, patch, MagicMock
 from address import Address
 from power_outage_report import PowerOutageReport
@@ -67,7 +66,8 @@ class TestPowerOutageReport(unittest.TestCase):
     @patch('logging.error')
     @patch.object(PowerOutageReport, '_retry')
     @patch('address.Address.set_city_id')
-    def test_try_to_execute_function(self, mock_function: MagicMock, mock_retry: MagicMock, mock_error: MagicMock) -> None:
+    def test_try_to_execute_function(self, mock_function: MagicMock, mock_retry: MagicMock,
+                                     mock_error: MagicMock) -> None:
         self.power_outage_report_cls.retries = 3
         self.power_outage_report_cls._try_to_execute_function(mock_function)
         mock_function.assert_called_once_with()
@@ -126,10 +126,12 @@ class TestPowerOutageReport(unittest.TestCase):
     @patch('request_sender.RequestSender.send_request')
     @patch('power_outage_report.datetime')
     def test_get_outage_information(self, mock_date: MagicMock, mock_send_request: MagicMock) -> None:
-        mock_date.now.return_value = datetime.datetime(2023, 9, 22, 17, 0, 0, 0)
+        mock_date_now = MagicMock()
+        mock_date.now = MagicMock(return_value=mock_date_now)
         payload = {'cityGAID': Address.city_id, 'streetGAID': Address.street_id, 'houseNo': Address.house_number,
-                   'fromDate': '2023-09-22T17:00:00', 'toDate': '2023-09-27T17:00:00', 'flatNo': '',
-                   '_': 1695394800000}
+                   'fromDate': mock_date_now.isoformat(),
+                   'toDate': (mock_date_now + mock_date.timedelta).isoformat(),
+                   'flatNo': '', '_': int(mock_date_now.timestamp() * 1000)}
         self.power_outage_report_cls._get_outage_information()
         mock_date.now.assert_called_once_with()
         mock_send_request.assert_called_once_with('outages/address', payload)
