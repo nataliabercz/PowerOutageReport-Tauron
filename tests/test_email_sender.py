@@ -199,6 +199,7 @@ class TestEmailSender(unittest.TestCase):
     def test_check_sent_emails_was_sent_true(self) -> None:
         self.email_sender_cls.email_title = EMAIL_TITLE.format('StreetName')
         self.email_sender_cls.receivers_emails = correct_configuration_one_address['addresses'][0]['receivers_emails']
+        self.email_sender_cls.start_date = '27/09/2023'
         mock_server = MagicMock()
         imaplib.IMAP4_SSL = MagicMock(return_value=mock_server)
         mock_server.select.return_value = ('OK', [b'100'])
@@ -208,14 +209,32 @@ class TestEmailSender(unittest.TestCase):
         mock_server.fetch.assert_called_once_with('100', '(RFC822)')
         self.assertEqual(email_was_sent, True)
 
-    def test_check_sent_emails_was_sent_false(self) -> None:
+    def test_check_sent_emails_was_sent_false_other_street(self) -> None:
         self.email_sender_cls.sent_messages_number = 10
-        self.email_sender_cls.email_title = EMAIL_TITLE.format('StreetName')
+        self.email_sender_cls.email_title = EMAIL_TITLE.format('StreetName1')
         self.email_sender_cls.receivers_emails = correct_configuration_one_address['addresses'][0]['receivers_emails']
+        self.email_sender_cls.start_date = '27/09/2023'
         mock_server = MagicMock()
         imaplib.IMAP4_SSL = MagicMock(return_value=mock_server)
         mock_server.select.return_value = ('OK', [b'100'])
-        mock_server.fetch.return_value = ('OK', [(b'100 (RFC822 {939}', b'some msg'), b')'])
+        mock_server.fetch.return_value = ('OK', [(b'100 (RFC822 {939}', SENT_EMAILS_MESSAGE_BYTES), b')'])
+        email_was_sent = self.email_sender_cls._check_sent_emails(mock_server, f'{SENT_EMAILS_FOLDER}')
+        mock_server.select.assert_called_once_with(f'"{SENT_EMAILS_FOLDER}"')
+        mock_server.fetch.assert_has_calls([call('100', '(RFC822)'), call('99', '(RFC822)'), call('98', '(RFC822)'),
+                                            call('97', '(RFC822)'), call('96', '(RFC822)'), call('95', '(RFC822)'),
+                                            call('94', '(RFC822)'), call('93', '(RFC822)'), call('92', '(RFC822)'),
+                                            call('91', '(RFC822)')])
+        self.assertEqual(email_was_sent, False)
+
+    def test_check_sent_emails_was_sent_false_other_date(self) -> None:
+        self.email_sender_cls.sent_messages_number = 10
+        self.email_sender_cls.email_title = EMAIL_TITLE.format('StreetName')
+        self.email_sender_cls.receivers_emails = correct_configuration_one_address['addresses'][0]['receivers_emails']
+        self.email_sender_cls.start_date = '27/10/2023'
+        mock_server = MagicMock()
+        imaplib.IMAP4_SSL = MagicMock(return_value=mock_server)
+        mock_server.select.return_value = ('OK', [b'100'])
+        mock_server.fetch.return_value = ('OK', [(b'100 (RFC822 {939}', SENT_EMAILS_MESSAGE_BYTES), b')'])
         email_was_sent = self.email_sender_cls._check_sent_emails(mock_server, f'{SENT_EMAILS_FOLDER}')
         mock_server.select.assert_called_once_with(f'"{SENT_EMAILS_FOLDER}"')
         mock_server.fetch.assert_has_calls([call('100', '(RFC822)'), call('99', '(RFC822)'), call('98', '(RFC822)'),

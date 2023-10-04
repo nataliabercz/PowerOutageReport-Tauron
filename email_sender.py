@@ -17,6 +17,7 @@ class EmailSender:
     receivers_emails = None
     email_title = None
     street_name = None
+    start_date = None
 
     def set_sender_info(self, configuration: Dict[str, Any]) -> None:
         self.sender_email = configuration.get('sender_email')
@@ -39,17 +40,19 @@ class EmailSender:
     def _prepare_email_data(self, outage_item: Dict[str, Any]) -> str:
         start_time = datetime.strptime(outage_item['StartDate'], '%Y-%m-%dT%H:%M:%SZ')
         end_time = datetime.strptime(outage_item['EndDate'], '%Y-%m-%dT%H:%M:%SZ')
-        start_date = datetime.strftime(start_time.date(), '%d/%m/%Y')
-        end_date = datetime.strftime(end_time.date(), '%d/%m/%Y')
+        start = datetime.strftime(start_time.date(), '%d/%m/%Y')
+        end = datetime.strftime(end_time.date(), '%d/%m/%Y')
 
         utcnow = pytz.timezone('utc').localize(datetime.utcnow())
         timezone_shift = timedelta(hours=utcnow.astimezone().hour - utcnow.hour)
 
+        self.start_date = str((start_time + timezone_shift).time())
+
         return f'From: {self.sender_email}\nTo: {self._join_receivers_emails()}\n' \
                f'Subject: {self.email_title}\n\n' \
                f'AREA: {unidecode.unidecode(outage_item["Message"])}\n' \
-               f'START: {start_date}\nEND: {end_date}\n' \
-               f'DURATION: {(start_time + timezone_shift).time()} - {(end_time + timezone_shift).time()}'
+               f'START: {start}\nEND: {end}\n' \
+               f'DURATION: {self.start_date} - {(end_time + timezone_shift).time()}'
 
     def _send_email(self, email_text: str) -> None:
         try:
@@ -80,7 +83,8 @@ class EmailSender:
         for i in range(int(messages_number[0]), int(messages_number[0]) - self.sent_messages_number, -1):
             if i > 0:
                 _, message = server.fetch(str(i), '(RFC822)')
-                if self.email_title in str(message[0]) and self._join_receivers_emails() in str(message[0]):
+                if all(substring in str(message[0]) for substring in [self.email_title, self._join_receivers_emails(),
+                                                                      self.start_date]):
                     return True
         return False
 
