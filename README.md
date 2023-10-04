@@ -68,19 +68,21 @@ App passwords can only be used with accounts that have 2-Step Verification turne
     
     <img src="./images/two_steps_verification.png" width="400"/>
 
-3. Scroll down and go to the `App passwords` section.
+3. Login to your account, if needed.
+
+4. Scroll down and go to the `App passwords` section.
     
     <img src="./images/app_passwords.png" width="400"/>
 
-4. Fill in the `App name` and click `Create` button.
+5. Fill in the `App name` and click `Create` button.
     
     <img src="./images/create_password.png" width="400"/>
 
-5. Copy generated password.
+6. Copy generated password.
     
     <img src="./images/generated_password.png" width="400"/>
 
-6. Paste generated password to `configuration.json` file and remove all spaces.
+7. Paste generated password to `configuration.json` file and remove all spaces.
    
     *It should look like: `oaksrbampblkvusr`.*
 
